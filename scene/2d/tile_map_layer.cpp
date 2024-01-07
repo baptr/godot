@@ -1407,7 +1407,8 @@ void TileMapLayer::_build_runtime_update_tile_data_for_cell(CellData &r_cell_dat
 
 					tile_map_node->GDVIRTUAL_CALL(_tile_data_runtime_update, layer_index_in_tile_map_node, r_cell_data.coords, tile_data_runtime_use);
 
-					if (p_auto_add_to_dirty_list) {
+					if (p_auto_add_to_dirty_list && !r_cell_data.dirty_list_element.in_list()) {
+						print_line(vformat("build_update: adding %x to %x", (uint64_t)(void*)(&r_cell_data.dirty_list_element), (uint64_t)(void*)(&dirty.cell_list)));
 						dirty.cell_list.add(&r_cell_data.dirty_list_element);
 					}
 				}
@@ -2149,6 +2150,8 @@ void TileMapLayer::internal_update() {
 	}
 
 	// Clear the dirty cells list.
+	Thread::ID tid = Thread::get_caller_id();
+	print_line(vformat("[%s] Clearing dirty list %x", tid, (uint64_t)(void*)(&dirty.cell_list)));
 	dirty.cell_list.clear();
 }
 
@@ -2191,6 +2194,8 @@ void TileMapLayer::set_cell(const Vector2i &p_coords, int p_source_id, const Vec
 	// Make the given cell dirty.
 	MutexLock lock(dirty.mutex);
 	if (!E->value.dirty_list_element.in_list()) {
+		Thread::ID tid = Thread::get_caller_id();
+		print_line(vformat("[%s] set_cell: adding %x to %x", tid, (uint64_t)(void*)(&E->value.dirty_list_element), (uint64_t)(void*)(&dirty.cell_list)));
 		dirty.cell_list.add(&(E->value.dirty_list_element));
 	}
 	TileMap *tile_map_node = _fetch_tilemap();

@@ -33,6 +33,7 @@
 
 #include "core/error/error_macros.h"
 #include "core/typedefs.h"
+#include "core/variant/variant.h"
 
 template <class T>
 class SelfList {
@@ -77,7 +78,9 @@ public:
 		}
 
 		void remove(SelfList<T> *p_elem) {
-			ERR_FAIL_COND(p_elem->_root != this);
+			if (p_elem->_root != this) {
+				CRASH_NOW_MSG(vformat("Trouble removing from list %x: element %x _root = %x", (uint64_t)(void*)p_elem, (uint64_t)(void*)(p_elem->_root)));
+			}
 			if (p_elem->_next) {
 				p_elem->_next->_prev = p_elem->_prev;
 			}
@@ -101,6 +104,9 @@ public:
 
 		void clear() {
 			while (_first) {
+				if (_first->_root != this) {
+					CRASH_NOW_MSG(vformat("Trouble clearing list %x: element %x _root = %x", (uint64_t)(void*)this, (uint64_t)(void*)_first, (uint64_t)(void*)(_first->_root)));
+				}
 				remove(_first);
 			}
 		}
