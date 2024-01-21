@@ -31,6 +31,7 @@
 #ifndef TILE_MAP_LAYER_H
 #define TILE_MAP_LAYER_H
 
+#include "core/os/mutex.h"
 #include "scene/2d/tile_map.h"
 #include "scene/resources/tile_set.h"
 
@@ -262,6 +263,7 @@ private:
 
 	// Dirty flag. Allows knowing what was modified since the last update.
 	struct {
+		Mutex mutex;
 		bool flags[DIRTY_FLAGS_MAX] = { false };
 		SelfList<CellData>::List cell_list;
 	} dirty;
